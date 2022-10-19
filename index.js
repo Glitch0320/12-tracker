@@ -53,10 +53,8 @@ const init = async () => {
             case 'Add department':
                const { depname } = await inq.prompt(util.department)
 
-               !depRes ? console.log('Please provide name.') : connec.query(
-               `INSERT INTO departments(id, name) VALUES(${Math.floor((1 + Math.random()) * 0x10000)}, '${depname}')`, (err, rows, fields) => {
-                    err ? console.log(err) : console.log('Department added succesfully.')
-               })
+               !depname ? console.log('Please provide name.') : connec.query(
+               `INSERT INTO departments(id, name) VALUES(${Math.floor((1 + Math.random()) * 0x10000)}, '${depname}')`)
             break
             case 'Add role':
                // Update questions with current depnames
@@ -109,19 +107,42 @@ const init = async () => {
                !first || !last || !rolId ? console.log('Invalid input.') : connec.query(
                     `INSERT INTO employees (id, first_name, last_name, role_id) VALUES (${Math.floor((1 + Math.random()) * 0x10000)}, '${first}', '${last}', ${rolId})`)
             break
-            case 'Update Employee role':
-               // WHEN I choose to update an employee role
+            case 'Update employee role':
                // THEN I am prompted to select an employee to update and their new role and this information is updated in the database
                
-               // Update questions with current empnames
+               // update employee list
                const [rows5, fields5] = await connec.query(
-                    `SELECT name FROM departments`
+                    `SELECT first_name, last_name FROM employees`
                )
                const temp2 = []
                rows5.forEach(obj => {
-                    temp2.push(obj.name)
+                    temp2.push(`${obj.first_name} ${obj.last_name}`)
                })
-               util.role[2].choices = temp2
+               util.update[0].choices = temp2
+
+               const employeeName = await inq.prompt(util.update)
+               const [firstName, lastName] = employeeName.empname.split(' ')
+
+               // update role list
+               const [rows6, fields6] = await connec.query('SELECT title FROM roles')
+               const temp3 = []
+               rows6.forEach(obj => {
+                    temp3.push(obj.title)
+               })
+               util.roleList[0].choices = temp3
+
+               const newRole = await inq.prompt(util.roleList)
+
+               const [rows7, fields7] = await connec.query(
+                    `SELECT id FROM roles WHERE title = '${newRole.roltitles}'`
+                ) 
+
+                // Id of new role's department
+                newRolId = rows7[0].id
+ 
+                // Perform insert if all values true
+                !firstName || !lastName || !newRolId ? console.log('Invalid input.') : connec.query(
+                     `UPDATE employees SET role_id = ${newRolId} WHERE first_name = '${firstName}' AND last_name = '${lastName}'`)
 
             break
             default:

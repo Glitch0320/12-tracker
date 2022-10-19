@@ -108,6 +108,15 @@ const util = {
             choices: [],
             message: 'Which employee'
         }
+    ],
+
+    roleList: [
+        {
+            name: 'roltitles',
+            type: 'list',
+            choices: [],
+            message: 'What is their new role'
+        }
     ]
 
 }
