@@ -2,11 +2,12 @@ const inq = require('inquirer')
 const sql = require('mysql2')
 const constable = require('console.table')
 const { util } = require('./assets/js/logic')
+require('dotenv').config()
 
 const pool = sql.createPool({
      host: 'localhost',
      user: 'root',
-     password: '#queryparams32',
+     password: process.env.SQL_PASS,
      database: 'company'
 })
 
@@ -37,17 +38,19 @@ const init = async () => {
         switch(choice.options) {
           // These three will return an array of objects and display them with console.table
             case 'View all departments':
-               rows = await util.getDepartments()
-               console.table(rows)
-            break
+               const data = await util.getDepartments()
+               console.table(data)
+            break;
+
             case 'View all roles':
-                 rows = await util.getRoles()
-                 console.table(rows)
-            break
+                 const data1 = await util.getRoles()
+                 console.table(data1)
+            break;
+
             case 'View all employees':
-                 rows = await util.getEmployees()
-                 console.table(rows)
-            break
+                 const data2 = await util.getEmployees()
+                 console.table(data2)
+            break;
 
           // The remaining functions won't return anything
             case 'Add department':
@@ -55,7 +58,8 @@ const init = async () => {
 
                !depname ? console.log('Please provide name.') : connec.query(
                `INSERT INTO departments(id, name) VALUES(${Math.floor((1 + Math.random()) * 0x10000)}, '${depname}')`)
-            break
+            break;
+
             case 'Add role':
                // Update questions with current depnames
                const [rows1, fields1] = await connec.query(
@@ -80,21 +84,40 @@ const init = async () => {
                // Perform insert if all values true
                !rolname || !salary || !depId ? console.log('Invalid input.') : connec.query(
                     `INSERT INTO roles (id, title, salary, department_id) VALUES (${Math.floor((1 + Math.random()) * 0x10000)}, '${rolname}', ${salary}, ${depId})`)
-            break
+            break;
+
             case 'Add employee':
                  // Update questions with current role titles
                const [rows3, fields3] = await connec.query(
                     `SELECT title FROM roles`
                )
-
                const temp1 = []
                rows3.forEach(obj => {
                     temp1.push(obj.title)
                })
                util.employee[2].choices = temp1
 
+               // update employee list
+               const [rows8, fields8] = await connec.query(
+                    `SELECT first_name, last_name FROM employees`
+               )
+               const temp4 = []
+               rows8.forEach(obj => {
+                    temp4.push(`${obj.first_name} ${obj.last_name}`)
+               })
+               temp4.unshift('none')
+               util.employee[3].choices = temp4
+
+
                // Prompt for new employee obj
-               const { first, last, role } = await inq.prompt(util.employee)
+               const { first, last, role, manager } = await inq.prompt(util.employee)
+
+               let mgrId = null
+               if (manager != 'none') {
+                    const [firstName1, lastName1] = manager.split(' ')
+                    const [mgr] = await connec.query(`SELECT id FROM employees WHERE first_name = '${firstName1}' AND last_name = '${lastName1}'`)
+                    mgrId = mgr[0].id
+               }
 
                const [rows4, fields4] = await connec.query(
                    `SELECT id FROM roles WHERE title = '${role}'`
@@ -104,9 +127,10 @@ const init = async () => {
                rolId = rows4[0].id
 
                // Perform insert if all values true
-               !first || !last || !rolId ? console.log('Invalid input.') : connec.query(
-                    `INSERT INTO employees (id, first_name, last_name, role_id) VALUES (${Math.floor((1 + Math.random()) * 0x10000)}, '${first}', '${last}', ${rolId})`)
-            break
+               !first || !last || !rolId ? console.log('Invalid input.') : await connec.query(
+                    `INSERT INTO employees (id, first_name, last_name, role_id, manager_id) VALUES (0, '${first}', '${last}', ${rolId}, ${mgrId})`)
+            break;
+
             case 'Update employee role':
                // THEN I am prompted to select an employee to update and their new role and this information is updated in the database
                
@@ -144,10 +168,11 @@ const init = async () => {
                 !firstName || !lastName || !newRolId ? console.log('Invalid input.') : connec.query(
                      `UPDATE employees SET role_id = ${newRolId} WHERE first_name = '${firstName}' AND last_name = '${lastName}'`)
 
-            break
+            break;
+
             default:
                 quit = true
-            break
+               break
         }
 
     } while (!quit)
