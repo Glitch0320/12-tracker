@@ -15,6 +15,9 @@ Ensure you have node and mysql installed and clone this repo to your local machi
 ## Usage
 In a terminal window like git bash or powershell, navigate to the root of the cloned repo. Run node index and cycle through the options with the arrow keys. Press enter to choose and answer each prompt if requested.
 
+## Screenshot
+<img src='./assets/images/12-tracker.png' alt='Screenshot of a command line application interacting with a company database.' />
+
 ## Video
 <a href='https://drive.google.com/file/d/1agxVCaiRwHxcjprhe6VCZMBo3y6rabU5/view'>Tutorial Video</a>
 
