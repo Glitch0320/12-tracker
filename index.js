@@ -52,17 +52,18 @@ const init = async () => {
                  console.table(data2)
             break;
 
-          // The remaining functions won't return anything
+          // These functions should be added to util
             case 'Add department':
                const { depname } = await inq.prompt(util.department)
 
                !depname ? console.log('Please provide name.') : connec.query(
-               `INSERT INTO departments(id, name) VALUES(${Math.floor((1 + Math.random()) * 0x10000)}, '${depname}')`)
+               `INSERT INTO departments(id, name) VALUES(0, '${depname}')`)
             break;
 
             case 'Add role':
+
                // Update questions with current depnames
-               const [rows1, fields1] = await connec.query(
+               const [rows1] = await connec.query(
                     `SELECT name FROM departments`
                )
                const temp = []
@@ -83,7 +84,7 @@ const init = async () => {
 
                // Perform insert if all values true
                !rolname || !salary || !depId ? console.log('Invalid input.') : connec.query(
-                    `INSERT INTO roles (id, title, salary, department_id) VALUES (${Math.floor((1 + Math.random()) * 0x10000)}, '${rolname}', ${salary}, ${depId})`)
+                    `INSERT INTO roles (id, title, salary, department_id) VALUES (0, '${rolname}', ${salary}, ${depId})`)
             break;
 
             case 'Add employee':
